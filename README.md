@@ -2,7 +2,7 @@
 [![.NET](https://github.com/oliverw/miningcore/actions/workflows/dotnet.yml/badge.svg)](https://github.com/oliverw/miningcore/actions/workflows/dotnet.yml)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
-<img src="https://github.com/oliverw/miningcore/raw/master/logo.png" width="150">
+<img src="https://github.com/ShorelineCrypto/miningcore-neng/raw/master/logo.png" width="150">
 
 ### Features
 
@@ -32,94 +32,22 @@ Code contributions are very welcome and should be submitted as standard [pull re
 ## Building on Debian/Ubuntu
 
 ```console
-git clone https://github.com/oliverw/miningcore
-cd miningcore
+git clone https://github.com/ShorelineCrypto/miningcore-neng
+cd miningcore-neng
 ```
 
-Depending on your OS Version run either of these scripts:
-
-```console
-./build-debian-11.sh
-```
-or
-```console
-./build-ubuntu-20.04.sh
-```
-or
-```console
-./build-ubuntu-21.04.sh
-```
-
-## Building on Windows
-
-Download and install the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
-
-```dosbatch
-git clone https://github.com/oliverw/miningcore
-cd miningcore
-build-windows.bat
-```
-
-### Building in Visual Studio
-
-- Install [Visual Studio 2022](https://www.visualstudio.com/vs/). Visual Studio Community Edition is fine.
-- Open `Miningcore.sln` in Visual Studio
-
-## Building using Docker Engine
-In case you don't want to install any dependencies then you can build the app using the official Microsoft .NET SDK Docker image.
-
-```console
-git clone https://github.com/oliverw/miningcore
-cd miningcore
-```
 Then build using Docker:
 
 ```console
-docker run --rm -v $(pwd):/app -w /app mcr.microsoft.com/dotnet/sdk:6.0 /bin/bash -c 'apt update && apt install libssl-dev pkg-config libboost-all-dev libsodium-dev build-essential cmake -y --no-install-recommends && cd src/Miningcore && dotnet publish -c Release --framework net6.0 -o /app/build/'
-```
-It will use a Linux container, you will build a Linux executable that will not run on Windows or macOS. You can use a runtime argument (-r) to specify the type of assets that you want to publish (if they don't match the SDK container). The following examples assume you want assets that match your host operating system, and use runtime arguments to ensure that.
-
-For macOS:
-
-```console
-docker run --rm -v $(pwd):/app -w /app mcr.microsoft.com/dotnet/sdk:6.0 /bin/bash -c 'apt update && apt install libssl-dev pkg-config libboost-all-dev libsodium-dev build-essential cmake -y --no-install-recommends && cd src/Miningcore && dotnet publish -c Release --framework net6.0 -o /app/build/ -r osx-x64 --self-contained false'
-```
-
-### Building and Running Miningcore from a container
-
-**note** - The build scripts optimize  the build for the hardware platform the container is built on ( does it have avx for example).  If you run this container on a platform that does NOT have the same architecture you could have unexplained crashes.  YOU SHOULD BUILD THIS CONTAINER ON THE HOST YOU ARE GOING TO RUN THIS CONTAINER ON.
-
-Commands to build container: `docker build -t <your_dockerhubid>/miningcore:v73-foo .`
-
-The docker build assumes you are going to mount your  config file  in a volume mount.  for example:
-
-```sh
-
-docker run -d \
-    -p 4000:4000 \
-    -p 4066:4066 \
-    -p 4067:4067 \
-    --name mc    \
-    -v `pwd`/config_prod.json:/app/config.json \
-    --restart=unless-stopped \
-    <your_dockerhubid>/miningcore:v73-foo
-
+docker build -t miningcore-neng .
 ```
 
 
+### Configure and Running Miningcore from a container
 
+Copy `conf/config.json-example-solo` to `conf/config`, modify with proper hostname, IP, username and password. 
 
-
-For Windows using Linux container:
-
-```console
-docker run --rm -v $(pwd):/app -w /app mcr.microsoft.com/dotnet/sdk:6.0 /bin/bash -c 'apt update && apt install libssl-dev pkg-config libboost-all-dev libsodium-dev build-essential cmake -y --no-install-recommends && cd src/Miningcore && dotnet publish -c Release --framework net6.0 -o /app/build/ -r win-x64 --self-contained false'
-```
-
-To delete used images and containers you can run after all:
-```console
-docker system prune -af
-```
+`docker_run.sh` contains the shell scrip that you can launch the docker container. Run this script to launch private solo pool 
 
 ## Running Miningcore
 
@@ -131,7 +59,7 @@ Running and developing Miningcore on Windows is of course supported.
 
 ### Database setup
 
-Miningcore currently requires PostgreSQL 10 or higher.
+Miningcore currently requires PostgreSQL 10 or higher. Follow common method to install and run postgreSQL in linux. 
 
 Run Postgres's `psql` tool:
 
@@ -151,8 +79,31 @@ Quit `psql` with \q
 Import the database schema:
 
 ```console
-sudo -u postgres psql -d miningcore -f miningcore/src/Miningcore/Persistence/Postgres/Scripts/createdb.sql
+cp src/Miningcore/Persistence/Postgres/Scripts/createdb.sql /tmp/
+sudo -u postgres psql -d miningcore -f /tmp/createdb.sql
 ```
+
+#### Trouble Shoot Database and Pool
+
+The Nengcoin daemon,  pool config, or postgreSQL may cause errors that require you back and forth to fix the issue. Common issues are:
+
+1.  nengcoin.conf inside ~/.nengcoin require proper permission. a typical extra lines will be:
+```commandline
+rpcallowip=127.0.0.1
+rpcallowip=YourLANIP
+rpcallowip=172.17.0.2
+
+```
+2. postgresql permission on file `/etc/postgresql/14/main/postgresql.conf` uncomment one line:
+```commandline
+listen_addresses = '192.168.86.35'              # what IP address(es) to listen on;
+```
+In above example, the '192.168.86.35' should be your address of YourLAN IP of the database
+3. Add one line to file `/etc/postgresql/14/main/pg_hba.conf`
+```commandline
+host    miningcore    miningcore    172.17.0.0/16    scram-sha-256
+```
+Then restart your postgresql service in ubuntu linux.
 
 #### Advanced setup
 
