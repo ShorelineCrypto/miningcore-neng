@@ -1,6 +1,6 @@
 {
   "logging": {
-    "level": "info",
+    "level": "debug",
     "enableConsoleLog": true,
     "enableConsoleColors": true,
     "logFile": "core.log",
@@ -10,7 +10,7 @@
   },
   "banning": {
     "manager": "Integrated",
-    "banOnJunkReceive": true,
+    "banOnJunkReceive": false,
     "banOnInvalidShares": false
   },
   "notifications": {
@@ -18,10 +18,10 @@
   },
   "persistence": {
     "postgres": {
-      "host": "postgres",
+      "host": "192.168.86.35",
       "port": 5432,
       "user": "miningcore",
-      "password": "YOUR_DB_PASSWORD",
+      "password": "miningcore",
       "database": "miningcore"
     }
   },
@@ -86,11 +86,11 @@
       },
       "daemons": [
         {
-          "host": "nengcoind",
-          "port": 6376,
+          "host": "host.docker.internal",
+          "port": 8376,
           "user": "YOUR_RPC_USER",
-          "password": "YOUR_RPC_PASSWORD",
-          "zmqBlockNotifySocket": "tcp://nengcoind:28332"
+          "password": "YOUR_RPC_USER",
+          "zmqBlockNotifySocket": "tcp://host.docker.internal:28332"
         }
       ],
       "paymentProcessing": {
